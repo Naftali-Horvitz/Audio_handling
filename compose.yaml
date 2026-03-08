@@ -79,14 +79,13 @@ services:
       - xpack.security.enabled=false
     ports:
       - 5601:5601
-
     depends_on:
       elasticsearch:
         condition: service_healthy
 
-  service_metadata:
-    container_name: service_metadata
-    build: ./service_metadata
+  create_metadata:
+    container_name: create_metadata
+    build: ./create_metadata
     environment:
       BOOTSTRAP_SERVERS: "kafka:9092"
       PRODUCER_TOPIC: "METADATA"
@@ -117,7 +116,23 @@ services:
       elasticsearch:
         condition: service_healthy
 
-        
+  audio_transcription:
+    container_name: audio_transcription
+    build: ./audio_transcription
+    environment:
+      BOOTSTRAP_SERVERS: "kafka:9092"
+      CONSUMER_TOPIC: "METADATA"
+      ES_HOST: "http://elasticsearch:9200"
+    volumes:
+      - ./shared/podcasts:/app/podcasts
+      - ./shared/logger:/app/logger
+    depends_on:
+      kafka:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      
+      
 volumes:
   kafka_data:
   mongodb_data:
